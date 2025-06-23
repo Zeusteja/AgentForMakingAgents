@@ -1,0 +1,254 @@
+{
+  "name": "Agent Opus",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7177b55b-32ad-4b93-880a-5b84042e2145",
+      "name": "When chat message received",
+      "webhookId": "d832bc01-555e-4a24-a8cc-31db8fc1c816"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-opus-4-20250514",
+          "mode": "list",
+          "cachedResultName": "Claude Opus 4"
+        },
+        "options": {
+          "maxTokensToSample": 8000,
+          "thinking": true,
+          "thinkingBudget": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        200
+      ],
+      "id": "33eb58f0-f531-4ef8-ac11-55cfec3e29fa",
+      "name": "Claude Opus 4"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        380,
+        0
+      ],
+      "id": "4bdb303b-b7cb-4b48-b9d3-f55e66c4a3d2",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "workflowObject": "={{ JSON.stringify($json.workflow) }}\n\n\n\n\n\n\n\n",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        0
+      ],
+      "id": "db25eca0-147b-40d3-a220-fcd064deb2b6",
+      "name": "n8n",
+      "credentials": {
+        "n8nApi": {
+          "id": "ZED0HK00SYlNFOgb",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f4b8c16e-6788-4c17-b643-94a3f0620860",
+              "name": "Workflow Link",
+              "value": "=https://YOUR N8N DOMAIN/workflow/{{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1260,
+        20
+      ],
+      "id": "16409bcd-681f-4704-a07b-65a043d8c59f",
+      "name": "Workflow Link"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg",
+          "mode": "list",
+          "cachedResultName": "n8n Documentation V4",
+          "cachedResultUrl": "https://docs.google.com/document/d/1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg/edit?usp=drivesdk"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "7aaf4031-7aa2-484a-b4dd-0712fdea5877",
+      "name": "Get n8n Docs",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Z7Y3HwZTe3GitLDq",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User request: {{ $('When chat message received').item.json.query }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert AI automation developer specializing in building workflows for n8n. Your job is to translate a human’s natural language request into a fully functional n8n workflow JSON. It should be comprehensive, functional, and importable. It should have 100% valid JSON structure, node types, and connection methods.\n\n## Output\nYour output should only be the final JSON of the full workflow.\n\nYour output must start with a { and must end with a }.\n- Do not include anything before the { (such as ```json or any markdown formatting).\n- Do not include anything after the } (such as closing code blocks like ``` or explanations).\n\nYour output should be a pure JSON object that begins with { and ends with }, ready to be used as the body of a POST request.\n\nThe JSON must:\n- Be syntactically valid and complete\n- Include a `nodes` array with each node containing all required parameters\n- Include a `connections` object that correctly maps outputs to inputs\n- Start with a `trigger` node if one is required for the use case (e.g., Webhook, Schedule, etc.)\n- Contain descriptive names and parameter values relevant to the user request\n- Avoid placeholders unless no reasonable value can be inferred\n- Contain sticky notes that are explaining what's going on within each step and any credentials or connections that still need to be configured. The colors should vary throughout the workflow.\n\nBefore generating the JSON, analyze the request and:\n1. Break it down into logical automation steps\n2. Choose appropriate nodes based on the steps\n3. Properly connect the nodes to reflect execution order\n\nIf the request is ambiguous, make a best guess using standard automation logic.\n\nDo not return explanations, comments, or any output outside of the JSON markdown block.\n\nYou are expected to produce developer-grade output suitable for direct import into n8n.\n\n## API Submission Requirements\nTo automatically create a workflow using the n8n API, your generated JSON must include the following top-level fields in the final object:\n\n- `name` (string): A clear, descriptive workflow name.\n- `nodes` (array): The complete array of node objects used in the workflow.\n- `connections` (object): A valid map of node-to-node connections.\n- `settings` (object): Workflow-level settings (e.g. `saveManualExecutions`, `executionOrder`).\n- `staticData` (null or object): Set to `null` unless specific static data is needed.\n\nExample “settings” object:\n  \"settings\": {\n    \"executionOrder\": \"v1\",\n    \"saveManualExecutions\": true,\n    \"saveDataSuccessExecution\": \"all\",\n    \"saveExecutionProgress\": true,\n    \"saveDataErrorExecution\": \"all\",\n    \"errorWorkflow\": \"\",\n    \"timezone\": \"America/New_York\"\n  }\n\n## n8n Documentation\n\n{{ $json.data }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ],
+      "id": "1bc74cc0-f31d-4a64-9350-04a707e69efb",
+      "name": "n8n Builder"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    workflow: JSON.parse($input.item.json.output)\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "31746631-604a-4c8f-8c2c-88747c09c228",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get n8n Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Opus 4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n": {
+      "main": [
+        [
+          {
+            "node": "Workflow Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get n8n Docs": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Builder": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "n8n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "59204d5d-dfef-4d4c-8222-3c2624d92ea4",
+  "meta": {
+    "instanceId": "e98e3d9bcb89c13761ff36a9e9f089349b16dea8f96a4fb6e00e33388e53bac6"
+  },
+  "id": "FjaG82XjcpuLWrKz",
+  "tags": []
+}

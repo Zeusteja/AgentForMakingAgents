@@ -1,0 +1,178 @@
+{
+  "name": "Agent Downloadable json flow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ca4e7726-dbb8-4470-899a-7619f10e4744",
+      "name": "When chat message received",
+      "webhookId": "d832bc01-555e-4a24-a8cc-31db8fc1c816"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        380,
+        0
+      ],
+      "id": "496c5cc0-97c0-497c-a4e1-9e6c8ed13a2c",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg",
+          "mode": "list",
+          "cachedResultName": "n8n Documentation V4",
+          "cachedResultUrl": "https://docs.google.com/document/d/1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg/edit?usp=drivesdk"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e7f00061-e089-4c7e-92d7-8e9ffbb07f07",
+      "name": "Get n8n Docs",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Z7Y3HwZTe3GitLDq",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User request: {{ $('When chat message received').item.json.query }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert AI automation developer specializing in building workflows for n8n. Your job is to translate a human’s natural language request into a fully functional n8n workflow JSON. It should be comprehensive, functional, and importable. It should have 100% valid JSON structure, node types, and connection methods.\n\n## Output\nYour output should only be the final JSON of the full workflow.\n\nYour output must start with a { and must end with a }.\n- Do not include anything before the { (such as ```json or any markdown formatting).\n- Do not include anything after the } (such as closing code blocks like ``` or explanations).\n\nYour output should be a pure JSON object that begins with { and ends with }, ready to be used as the body of a POST request.\n\nThe JSON must:\n- Be syntactically valid and complete\n- Include a `nodes` array with each node containing all required parameters\n- Include a `connections` object that correctly maps outputs to inputs\n- Start with a `trigger` node if one is required for the use case (e.g., Webhook, Schedule, etc.)\n- Contain descriptive names and parameter values relevant to the user request\n- Avoid placeholders unless no reasonable value can be inferred\n- Contain sticky notes that are explaining what's going on within each step and any credentials or connections that still need to be configured. The colors should vary throughout the workflow.\n\nBefore generating the JSON, analyze the request and:\n1. Break it down into logical automation steps\n2. Choose appropriate nodes based on the steps\n3. Properly connect the nodes to reflect execution order\n\nIf the request is ambiguous, make a best guess using standard automation logic.\n\nDo not return explanations, comments, or any output outside of the JSON markdown block.\n\nYou are expected to produce developer-grade output suitable for direct import into n8n.\n\n## API Submission Requirements\nTo automatically create a workflow using the n8n API, your generated JSON must include the following top-level fields in the final object:\n\n- `name` (string): A clear, descriptive workflow name.\n- `nodes` (array): The complete array of node objects used in the workflow.\n- `connections` (object): A valid map of node-to-node connections.\n- `settings` (object): Workflow-level settings (e.g. `saveManualExecutions`, `executionOrder`).\n- `staticData` (null or object): Set to `null` unless specific static data is needed.\n\nExample “settings” object:\n  \"settings\": {\n    \"executionOrder\": \"v1\",\n    \"saveManualExecutions\": true,\n    \"saveDataSuccessExecution\": \"all\",\n    \"saveExecutionProgress\": true,\n    \"saveDataErrorExecution\": \"all\",\n    \"errorWorkflow\": \"\",\n    \"timezone\": \"America/New_York\"\n  }\n\n## n8n Documentation\n\n{{ $json.data }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        540,
+        0
+      ],
+      "id": "67279662-8506-4e9d-82d2-3388adcfad9e",
+      "name": "n8n Builder"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    workflow: JSON.parse($input.item.json.output)\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "9a049b77-a7d1-48cb-9e12-33eb1a27be38",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        500,
+        160
+      ],
+      "id": "7d1618b2-7bf7-4c6c-8fac-edf2a5789cc3",
+      "name": "Mistral Cloud Chat Model"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get n8n Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get n8n Docs": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Builder": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "275747de-3c90-4687-8f1a-5e68b99e1cec",
+  "meta": {
+    "instanceId": "e98e3d9bcb89c13761ff36a9e9f089349b16dea8f96a4fb6e00e33388e53bac6"
+  },
+  "id": "JNCezDErHrXYBrxN",
+  "tags": []
+}

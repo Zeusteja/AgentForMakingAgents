@@ -1,0 +1,253 @@
+{
+  "name": "Agent Mistral",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -740,
+        -20
+      ],
+      "id": "4706ca27-feef-4618-85ca-c40d406fbfa2",
+      "name": "When chat message received",
+      "webhookId": "d832bc01-555e-4a24-a8cc-31db8fc1c816"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        -20
+      ],
+      "id": "76bca9d6-902e-4d2e-bbd7-89ee63d69190",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "workflowObject": "={{ JSON.stringify($json.workflow) }}\n\n\n\n\n\n\n\n",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        360,
+        -20
+      ],
+      "id": "2b36ff93-e0a4-44ad-b5e5-26b8d36eb5d0",
+      "name": "n8n",
+      "credentials": {
+        "n8nApi": {
+          "id": "ZED0HK00SYlNFOgb",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f4b8c16e-6788-4c17-b643-94a3f0620860",
+              "name": "Workflow Link",
+              "value": "=https://YOUR N8N DOMAIN/workflow/{{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        540,
+        20
+      ],
+      "id": "7a2fac00-b3e9-4d3e-a420-65ea38ce80de",
+      "name": "Workflow Link"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg",
+          "mode": "list",
+          "cachedResultName": "n8n Documentation V4",
+          "cachedResultUrl": "https://docs.google.com/document/d/1TiRusVo4DbbANwAr7I0GUGDZY3pmEmHZy3k66mRxLCg/edit?usp=drivesdk"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -520,
+        -20
+      ],
+      "id": "b5048757-b63f-4f15-928e-1c2e13afb393",
+      "name": "Get n8n Docs",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Z7Y3HwZTe3GitLDq",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=User request: {{ $('When chat message received').item.json.query }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are an expert AI automation developer specializing in building workflows for n8n. Your job is to translate a human’s natural language request into a fully functional n8n workflow JSON. It should be comprehensive, functional, and importable. It should have 100% valid JSON structure, node types, and connection methods.\n\n## Output\nYour output should only be the final JSON of the full workflow.\n\nYour output must start with a { and must end with a }.\n- Do not include anything before the { (such as ```json or any markdown formatting).\n- Do not include anything after the } (such as closing code blocks like ``` or explanations).\n\nYour output should be a pure JSON object that begins with { and ends with }, ready to be used as the body of a POST request.\n\nThe JSON must:\n- Be syntactically valid and complete\n- Include a `nodes` array with each node containing all required parameters\n- Include a `connections` object that correctly maps outputs to inputs\n- Start with a `trigger` node if one is required for the use case (e.g., Webhook, Schedule, etc.)\n- Contain descriptive names and parameter values relevant to the user request\n- Avoid placeholders unless no reasonable value can be inferred\n- Contain sticky notes that are explaining what's going on within each step and any credentials or connections that still need to be configured. The colors should vary throughout the workflow.\n\nBefore generating the JSON, analyze the request and:\n1. Break it down into logical automation steps\n2. Choose appropriate nodes based on the steps\n3. Properly connect the nodes to reflect execution order\n\nIf the request is ambiguous, make a best guess using standard automation logic.\n\nDo not return explanations, comments, or any output outside of the JSON markdown block.\n\nYou are expected to produce developer-grade output suitable for direct import into n8n.\n\n## API Submission Requirements\nTo automatically create a workflow using the n8n API, your generated JSON must include the following top-level fields in the final object:\n\n- `name` (string): A clear, descriptive workflow name.\n- `nodes` (array): The complete array of node objects used in the workflow.\n- `connections` (object): A valid map of node-to-node connections.\n- `settings` (object): Workflow-level settings (e.g. `saveManualExecutions`, `executionOrder`).\n- `staticData` (null or object): Set to `null` unless specific static data is needed.\n\nExample “settings” object:\n  \"settings\": {\n    \"executionOrder\": \"v1\",\n    \"saveManualExecutions\": true,\n    \"saveDataSuccessExecution\": \"all\",\n    \"saveExecutionProgress\": true,\n    \"saveDataErrorExecution\": \"all\",\n    \"errorWorkflow\": \"\",\n    \"timezone\": \"America/New_York\"\n  }\n\n## n8n Documentation\n\n{{ $json.data }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -20
+      ],
+      "id": "46c4ee45-cf54-46f2-b7ac-fdfc26446284",
+      "name": "n8n Builder"
+    },
+    {
+      "parameters": {
+        "model": "mistralai/mixtral-8x7b-instruct",
+        "options": {
+          "responseFormat": "=json_object"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        160
+      ],
+      "id": "2446ea99-9581-4dfa-a297-4f9f8d24cae1",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "TzwEtHSVba7Ge7TK",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return {\n  json: {\n    workflow: JSON.parse($input.item.json.output)\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -20
+      ],
+      "id": "787083cd-4642-4db1-bbd7-443aa5224b3e",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get n8n Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n": {
+      "main": [
+        [
+          {
+            "node": "Workflow Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get n8n Docs": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Builder": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "n8n Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "n8n",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4928d40c-7692-4af6-a966-d98bc7eb2a34",
+  "meta": {
+    "instanceId": "e98e3d9bcb89c13761ff36a9e9f089349b16dea8f96a4fb6e00e33388e53bac6"
+  },
+  "id": "hRcGAEbt3DGpjy3Z",
+  "tags": []
+}
